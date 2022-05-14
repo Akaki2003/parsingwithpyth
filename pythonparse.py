@@ -1,17 +1,27 @@
 import requests
 from bs4 import BeautifulSoup
+import mysql.connector
+mydb = mysql.connector.connect(
+    host = 'localhost',
+    user = 'root',
+    password = 'yvelazesashineliparoligamosacnobad',
+    database = 'test'
+)
+
+curs = mydb.cursor()
+
 
 while True:
     try:
-        #IN CASE YOU ENTER WRONG CITY, DEFAULT GOES TO TBILISI
+        #IN CASE YOU ENTER WRONG CITY, DEFAULT GOES TO TBILISI AND TABLE NAME IS THE ONE YOU WILL ENTER
         city = input("დაასახელეთ რომელი ქალაქის პროგნოზი გსურთ: ")
+        curs.execute(f"CREATE TABLE {city}(WEATHER VARCHAR(255),WEEKDAY VARCHAR(255),DAY VARCHAR(255))")
         URL = (f"https://amindi.ge/ka/city/{city}/?d=10")
         req = requests.get(URL)
         soup = BeautifulSoup(req.content, 'html5lib')
 
         weather = soup.findAll('div', class_='degrees')
         weekdays = soup.findAll('div', class_='weekDay')
-        city = soup.findAll('div',class_='weather-current pt-0')
         day = soup.findAll('p',class_='day')
         # CODE FOR THE DAY VALUES
         dayvalues = []
@@ -55,10 +65,14 @@ while True:
         print("ტემპერატურა შემდეგი ათი დღის განმავლობაში")
 
 
-        # WEEKDAYS AND TEMPERATURES 10 DAYS
+        # WEEKDAYS AND TEMPERATURES 10 DAYS + INSERTING INTO DATABASE
         for i, j, k, d in zip(dayvalues,weekvalues,firstvalues,secondvalues):
             print(f"{i} - {j} - {k}°-დან {d}°-მდე")
-            count += 1
+            insert = f"INSERT INTO {city}(WEATHER,WEEKDAY,DAY) values(%s,%s,%s)"
+            val = ((f"{k}°-{d}°"),j,i)
+            curs.execute(insert,val)
+
+        mydb.commit()
 
 
         retry = input("გსურთ თავიდან?(კი/არა): ")
@@ -68,7 +82,7 @@ while True:
 
 
     except Exception as e:
-        # print(e)
+        print(e)
         retry = input("მოხდა შეცდომა. გსურთ თავიდან?(კი/არა): ")
         if (retry != "კი"):
             break
