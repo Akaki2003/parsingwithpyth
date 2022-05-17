@@ -1,36 +1,35 @@
 import requests
 from bs4 import BeautifulSoup
 import mysql.connector
+
 mydb = mysql.connector.connect(
-    host = 'localhost',
-    user = 'root',
-    password = 'yvelazesashineliparoligamosacnobad',
-    database = 'test'
+    host='localhost',
+    user='root',
+    password='yvelazesashineliparoligamosacnobad',
+    database='test'
 )
 
 curs = mydb.cursor()
 
-
 while True:
     try:
-        #IN CASE YOU ENTER WRONG CITY, DEFAULT GOES TO TBILISI
+        # IN CASE YOU ENTER WRONG CITY, DEFAULT GOES TO TBILISI
         city = input("დაასახელეთ რომელი ქალაქის პროგნოზი გსურთ: ")
         dayamount = input("დაასახელეთ რამდენი დღის პროგნოზი გსურთ(5/10/15/25): ")
         curs.execute(f"DROP TABLE IF EXISTS {city}")
         curs.execute(f"CREATE TABLE {city}(WEATHER VARCHAR(255),WEEKDAY VARCHAR(255),DAY VARCHAR(255))")
-        URL = (f"https://amindi.ge/ka/city/{city}/?d={dayamount}")
+        URL = f"https://amindi.ge/ka/city/{city}/?d={dayamount}"
         req = requests.get(URL)
         soup = BeautifulSoup(req.content, 'html5lib')
 
         weather = soup.findAll('div', class_='degrees')
         weekdays = soup.findAll('div', class_='weekDay')
-        day = soup.findAll('p',class_='day')
+        day = soup.findAll('p', class_='day')
         # CODE FOR THE DAY VALUES
         dayvalues = []
 
         for i in day:
             dayvalues.append(i.text)
-
 
         # CODE FOR THE FIRST VALUE OF TEMPERATURE
         firstvalues = []
@@ -53,29 +52,23 @@ while True:
         for div in weekdays:
             weekvalues.append(div.text)
 
-        if (dayamount == 5 or dayamount == 10 or dayamount == 15 or dayamount == 25):
+        if dayamount == 5 or dayamount == 10 or dayamount == 15 or dayamount == 25:
             print(f"ტემპერატურა შემდეგი {dayamount} დღის განმავლობაში")
         # WEEKDAYS AND TEMPERATURES FOR ENTERED DAYS
         else:
             print(f"ტემპერატურა შემდეგი 5 დღის განმავლობაში")
 
-        for i,j,k,d in zip(firstvalues, secondvalues,weekvalues,dayvalues):
+        for i, j, k, d in zip(firstvalues, secondvalues, weekvalues, dayvalues):
             print(f"{d} - {k} - {i}-დან {j}-მდე")
-
-
-
 
         mydb.commit()
 
-
         retry = input("გსურთ თავიდან?(კი/არა): ")
-        if (retry != "კი"):
+        if retry != "კი":
             break
-
-
 
     except Exception as e:
         print(e)
         retry = input("მოხდა შეცდომა. გსურთ თავიდან?(კი/არა): ")
-        if (retry != "კი"):
+        if retry != "კი":
             break
