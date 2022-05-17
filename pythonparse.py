@@ -13,10 +13,12 @@ curs = mydb.cursor()
 
 while True:
     try:
-        #IN CASE YOU ENTER WRONG CITY, DEFAULT GOES TO TBILISI AND TABLE NAME IS THE ONE YOU WILL ENTER
+        #IN CASE YOU ENTER WRONG CITY, DEFAULT GOES TO TBILISI
         city = input("დაასახელეთ რომელი ქალაქის პროგნოზი გსურთ: ")
+        dayamount = input("დაასახელეთ რამდენი დღის პროგნოზი გსურთ(5/10/15/25): ")
+        curs.execute(f"DROP TABLE IF EXISTS {city}")
         curs.execute(f"CREATE TABLE {city}(WEATHER VARCHAR(255),WEEKDAY VARCHAR(255),DAY VARCHAR(255))")
-        URL = (f"https://amindi.ge/ka/city/{city}/?d=10")
+        URL = (f"https://amindi.ge/ka/city/{city}/?d={dayamount}")
         req = requests.get(URL)
         soup = BeautifulSoup(req.content, 'html5lib')
 
@@ -51,26 +53,17 @@ while True:
         for div in weekdays:
             weekvalues.append(div.text)
 
+        if (dayamount == 5 or dayamount == 10 or dayamount == 15 or dayamount == 25):
+            print(f"ტემპერატურა შემდეგი {dayamount} დღის განმავლობაში")
+        # WEEKDAYS AND TEMPERATURES FOR ENTERED DAYS
+        else:
+            print(f"ტემპერატურა შემდეგი 5 დღის განმავლობაში")
 
-        print("ტემპერატურა შემდეგი ხუთი დღის განმავლობაში")
-        # WEEKDAYS AND TEMPERATURES 5 DAYS
-        count = 0
         for i,j,k,d in zip(firstvalues, secondvalues,weekvalues,dayvalues):
             print(f"{d} - {k} - {i}-დან {j}-მდე")
-            count+=1
-
-            if(count==5):
-                break
-        print('\n')
-        print("ტემპერატურა შემდეგი ათი დღის განმავლობაში")
 
 
-        # WEEKDAYS AND TEMPERATURES 10 DAYS + INSERTING INTO DATABASE
-        for i, j, k, d in zip(dayvalues,weekvalues,firstvalues,secondvalues):
-            print(f"{i} - {j} - {k}°-დან {d}°-მდე")
-            insert = f"INSERT INTO {city}(WEATHER,WEEKDAY,DAY) values(%s,%s,%s)"
-            val = ((f"{k}°-{d}°"),j,i)
-            curs.execute(insert,val)
+
 
         mydb.commit()
 
@@ -86,7 +79,3 @@ while True:
         retry = input("მოხდა შეცდომა. გსურთ თავიდან?(კი/არა): ")
         if (retry != "კი"):
             break
-
-
-
-
