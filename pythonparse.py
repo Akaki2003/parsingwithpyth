@@ -60,6 +60,9 @@ while True:
 
         for i, j, k, d in zip(firstvalues, secondvalues, weekvalues, dayvalues):
             print(f"{d} - {k} - {i}-დან {j}-მდე")
+            insert = f"INSERT INTO {city}(WEATHER,WEEKDAY,DAY) values(%s,%s,%s)"
+            val = ((f"{i}°-{j}°"), k, d)
+            curs.execute(insert, val)
 
         mydb.commit()
 
