@@ -22,7 +22,6 @@ curs = mydb.cursor()
 
 while True:
     try:
-        # IN CASE YOU ENTER WRONG CITY, DEFAULT GOES TO TBILISI
         city = input("დაასახელეთ რომელი ქალაქის პროგნოზი გსურთ: ")
         dayamount = input("დაასახელეთ რამდენი დღის პროგნოზი გსურთ(5/10/15/25): ")
         curs.execute(f"DROP TABLE IF EXISTS {city}")
