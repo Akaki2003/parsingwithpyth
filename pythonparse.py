@@ -98,4 +98,3 @@ while True:
         retry = input("გსურთ თავიდან?(კი/არა): ")
         if retry != "კი":
             break
-
