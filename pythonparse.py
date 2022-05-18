@@ -1,14 +1,5 @@
 import requests
 from bs4 import BeautifulSoup
-
-
-URL = f"https://amindi.ge/ka/"
-req = requests.get(URL)
-soup = BeautifulSoup(req.content,'html5lib')
-
-
-import requests
-from bs4 import BeautifulSoup
 import mysql.connector
 
 mydb = mysql.connector.connect(
@@ -22,31 +13,41 @@ curs = mydb.cursor()
 
 while True:
     try:
-        city = input("დაასახელეთ რომელი ქალაქის პროგნოზი გსურთ: ")
-        dayamount = input("დაასახელეთ რამდენი დღის პროგნოზი გსურთ(5/10/15/25): ")
-        curs.execute(f"DROP TABLE IF EXISTS {city}")
-        curs.execute(f"CREATE TABLE {city}(WEATHER VARCHAR(255),WEEKDAY VARCHAR(255),DAY VARCHAR(255))")
-        URL = f"https://amindi.ge/ka/city/{city}/?d={dayamount}"
+        URL = "https://amindi.ge/ka/"
         req = requests.get(URL)
         soup = BeautifulSoup(req.content, 'html5lib')
+        city_list = soup.find('div', class_='dropdown-menu').findAll('ul')[0].findAll('li') + \
+                    soup.find('div', class_='dropdown-menu').findAll('ul')[1].findAll('li')
 
-
-        city_list = soup.find('div',class_='dropdown-menu').findAll('ul')[0].findAll('li') +\
-                    soup.find('div',class_='dropdown-menu').findAll('ul')[1].findAll('li')
-        weather = soup.findAll('div', class_='degrees')
-        weekdays = soup.findAll('div', class_='weekDay')
-        day = soup.findAll('p', class_='day')
         # ARRAY OF ALL THE CITIES
         city_array = []
         for i in city_list:
             current_city = i.find("a").text.rstrip((i.find('a').find('span').text))
             city_array.append(current_city)
 
+
+        city = input("დაასახელეთ რომელი ქალაქის პროგნოზი გსურთ: ")
+
         if city not in city_array:
             raise Exception("ქალაქის სახელი არასწორადაა შეყვანილი")
 
-        if dayamount not in ["5","10","15","25"]:
+
+        dayamount = int(input("დაასახელეთ რამდენი დღის პროგნოზი გსურთ(5/10/15/25): "))
+
+        if dayamount not in [5,10,15,25]:
             raise Exception("დღეების რაოდენობა არასწორადაა შეყვანილი")
+
+        URL = f"https://amindi.ge/ka/city/{city}/?d={dayamount}"
+        req = requests.get(URL)
+        soup = BeautifulSoup(req.content, 'html5lib')
+        day = soup.findAll('p', class_='day')
+        curs.execute(f"DROP TABLE IF EXISTS {city}")
+        curs.execute(f"CREATE TABLE {city}(WEATHER VARCHAR(255),WEEKDAY VARCHAR(255),DAY VARCHAR(255))")
+
+
+        weather = soup.findAll('div', class_='degrees')
+        weekdays = soup.findAll('div', class_='weekDay')
+
         # CODE FOR THE DAY VALUES
         dayvalues = []
 
@@ -97,9 +98,4 @@ while True:
         retry = input("გსურთ თავიდან?(კი/არა): ")
         if retry != "კი":
             break
-
-
-
-
-
 
